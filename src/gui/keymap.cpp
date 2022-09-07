@@ -224,6 +224,9 @@ static inline void patchABNT2(QHash<QString, Key>& map){
 #define K95P_X_START     20
 #define K95P_WIDTH       (K95_WIDTH - K95P_X_START + 1)
 
+#define K100_HEIGHT      (K95P_HEIGHT + 6)
+#define K100_WIDTH       (K95P_WIDTH + 10)
+
 // K70 cuts off the G keys on the left, as well as MR/M1/M2/M3
 #define K70_X_START     38
 #define K70_WIDTH       (K95_WIDTH - K70_X_START)
@@ -412,10 +415,10 @@ static const Key M55Keys[] = {
 
 // K95 Platinum lightbar
 static const Key K95PLbar[] = {
-    {nullptr, nullptr, "topbar1", 4, -3, LBS, true, false}, {nullptr, nullptr, "topbar2", 19, -3, LBS, true, false}, {nullptr, nullptr, "topbar3", 34, -3, LBS, true, false}, {nullptr, nullptr, "topbar4", 49, -3, LBS, true, false}, {nullptr, nullptr, "topbar5", 64, -3, LBS, true, false}, {nullptr, nullptr, "topbar6", 79, -3, LBS, true, false},
-    {nullptr, nullptr, "topbar7", 94, -3, LBS, true, false}, {nullptr, nullptr, "topbar8", 109, -3, LBS, true, false}, {nullptr, nullptr, "topbar9", 124, -3, LBS, true, false}, {nullptr, nullptr, "topbar10", 139, -3, LBS, true, false}, {nullptr, nullptr, "topbar11", 154, -3, LBS, true, false}, {nullptr, nullptr, "topbar12", 169, -3, LBS, true, false},
-    {nullptr, nullptr, "topbar13", 184, -3, LBS, true, false}, {nullptr, nullptr, "topbar14", 199, -3, LBS, true, false}, {nullptr, nullptr, "topbar15", 214, -3, LBS, true, false}, {nullptr, nullptr, "topbar16", 229, -3, LBS, true, false}, {nullptr, nullptr, "topbar17", 244, -3, LBS, true, false}, {nullptr, nullptr, "topbar18", 259, -3, LBS, true, false},
-    {nullptr, nullptr, "topbar19", 274, -3, LBS, true, false},
+    {nullptr, "Top Light Bar 1", "topbar1", 4, -3, LBS, true, false}, {nullptr, "Top Light Bar 2", "topbar2", 19, -3, LBS, true, false}, {nullptr, "Top Light Bar 3", "topbar3", 34, -3, LBS, true, false}, {nullptr, "Top Light Bar 4", "topbar4", 49, -3, LBS, true, false}, {nullptr, "Top Light Bar 5", "topbar5", 64, -3, LBS, true, false}, {nullptr, "Top Light Bar 6", "topbar6", 79, -3, LBS, true, false},
+    {nullptr, "Top Light Bar 7", "topbar7", 94, -3, LBS, true, false}, {nullptr, "Top Light Bar 8", "topbar8", 109, -3, LBS, true, false}, {nullptr, "Top Light Bar 9", "topbar9", 124, -3, LBS, true, false}, {nullptr, "Top Light Bar 10", "topbar10", 139, -3, LBS, true, false}, {nullptr, "Top Light Bar 11", "topbar11", 154, -3, LBS, true, false}, {nullptr, "Top Light Bar 12", "topbar12", 169, -3, LBS, true, false},
+    {nullptr, "Top Light Bar 13", "topbar13", 184, -3, LBS, true, false}, {nullptr, "Top Light Bar 14", "topbar14", 199, -3, LBS, true, false}, {nullptr, "Top Light Bar 15", "topbar15", 214, -3, LBS, true, false}, {nullptr, "Top Light Bar 16", "topbar16", 229, -3, LBS, true, false}, {nullptr, "Top Light Bar 17", "topbar17", 244, -3, LBS, true, false}, {nullptr, "Top Light Bar 18", "topbar18", 259, -3, LBS, true, false},
+    {nullptr, "Top Light Bar 19", "topbar19", 274, -3, LBS, true, false},
 };
 #define LBARCOUNT_K95P (sizeof(K95PLbar) / sizeof(Key))
 
@@ -633,7 +636,7 @@ static QHash<QString, Key> getMap(KeyMap::Model model, KeyMap::Layout layout){
         break;
     }
 
-    case KeyMap::K95P:{
+    case KeyMap::K95P: {
         // The K95 Platinum map is based on the K95
         map = getMap(KeyMap::K95, layout);
         // Remove excess G keys
@@ -668,7 +671,7 @@ static QHash<QString, Key> getMap(KeyMap::Model model, KeyMap::Layout layout){
         map.remove("m3");
         map.remove("mr");
         // Add profile button
-        map["profswitch"] = {nullptr,  "Profile Switch", "profswitch", 64, 1, 11, 8, true, true};
+        map["profswitch"] = {nullptr, "Profile Switch", "profswitch", 64, 1, 11, 8, true, true};
         // Centre Brightness/Winlock between F1 and F4
         map["light"].x = 75;
         map["lock"].x = 86;
@@ -689,15 +692,91 @@ static QHash<QString, Key> getMap(KeyMap::Model model, KeyMap::Layout layout){
         map["volup"].y += 1;
         // Shift all keys down (to make room for the lightbar), and to the left
         QMutableHashIterator<QString, Key> i(map);
-        while(i.hasNext()){
+        while (i.hasNext()) {
             i.next();
             i.value().x -= K95P_X_START;
             i.value().y += 6;
         }
         // Add lightbar
-        for(const Key* key = K95PLbar; key < K95PLbar + LBARCOUNT_K95P; key++)
-                map.insert(key->name, *key);
+        for (const Key *key = K95PLbar; key < K95PLbar + LBARCOUNT_K95P; key++)
+            map.insert(key->name, *key);
 
+        break;
+    }
+        case KeyMap::K100_MECHANICAL:{
+        map = getMap(KeyMap::K95P, layout);
+        // Shift everything down except the existing topbar
+        QMutableHashIterator<QString, Key> i(map);
+        while(i.hasNext()){
+            i.next();
+            if(!i.key().contains("topbar"))
+                i.value().y += (K100_HEIGHT - K95P_HEIGHT);
+
+             i.value().x += (K100_WIDTH - K95P_WIDTH)/2;
+        }
+        // Shrink the top lightbar and add the extra three items
+        for(int j = 0; j < 19; j++){
+            QString key = QString("topbar%1").arg(j + 1);
+            map[key].width = 15; // maybe 15
+            map[key].x -= j * 2 + 1;
+        }
+        map["topbar20"] = {nullptr, "Top Light Bar 20", "topbar20", 255, -3, 15, 6, true, false};
+        map["topbar21"] = {nullptr, "Top Light Bar 21", "topbar21", 268, -3, 15, 6, true, false};
+        map["topbar22"] = {nullptr, "Top Light Bar 22", "topbar22", 281, -3, 15, 6, true, false};
+
+        // Add the left and right bars
+        map["leftbar1"] = {nullptr, "Left Light Bar 1", "leftbar1", -2, -2, 6, 9, true, false};
+        map["leftbar2"] = {nullptr, "Left Light Bar 2", "leftbar2", -2, 7, 6, 9, true, false};
+        map["leftbar3"] = {nullptr, "Left Light Bar 3", "leftbar3", -2, 16, 6, 9, true, false};
+        map["leftbar4"] = {nullptr, "Left Light Bar 4", "leftbar4", -2, 25, 6, 9, true, false};
+        map["leftbar5"] = {nullptr, "Left Light Bar 5", "leftbar5", -2, 34, 6, 9, true, false};
+        map["leftbar6"] = {nullptr, "Left Light Bar 6", "leftbar6", -2, 43, 6, 9, true, false};
+        map["leftbar7"] = {nullptr, "Left Light Bar 7", "leftbar7", -2, 52, 6, 9, true, false};
+        map["leftbar8"] = {nullptr, "Left Light Bar 8", "leftbar8", -2, 61, 6, 9, true, false};
+        map["leftbar9"] = {nullptr, "Left Light Bar 9", "leftbar9", -2, 70, 6, 9, true, false};
+        map["leftbar10"] = {nullptr, "Left Light Bar 10", "leftbar10", -2, 79, 6, 9, true, false};
+        map["leftbar11"] = {nullptr, "Left Light Bar 11", "leftbar11", -2, 88, 6, 9, true, false};
+
+        map["rightbar1"] = {nullptr, "Right Light Bar 1", "rightbar1", 292, -2, 6, 9, true, false};
+        map["rightbar2"] = {nullptr, "Right Light Bar 2", "rightbar2", 292, 7, 6, 9, true, false};
+        map["rightbar3"] = {nullptr, "Right Light Bar 3", "rightbar3", 292, 16, 6, 9, true, false};
+        map["rightbar4"] = {nullptr, "Right Light Bar 4", "rightbar4", 292, 25, 6, 9, true, false};
+        map["rightbar5"] = {nullptr, "Right Light Bar 5", "rightbar5", 292, 34, 6, 9, true, false};
+        map["rightbar6"] = {nullptr, "Right Light Bar 6", "rightbar6", 292, 43, 6, 9, true, false};
+        map["rightbar7"] = {nullptr, "Right Light Bar 7", "rightbar7", 292, 52, 6, 9, true, false};
+        map["rightbar8"] = {nullptr, "Right Light Bar 8", "rightbar8", 292, 61, 6, 9, true, false};
+        map["rightbar9"] = {nullptr, "Right Light Bar 9", "rightbar9", 292, 70, 6, 9, true, false};
+        map["rightbar10"] = {nullptr, "Right Light Bar 10", "rightbar10", 292, 79, 6, 9, true, false};
+        map["rightbar11"] = {nullptr, "Right Light Bar 11", "rightbar11", 292, 88, 6, 9, true, false};
+
+        map["ctrlwheelb"] = map["light"];
+        map["ctrlwheelb"].name = "ctrlwheelb";
+        map["ctrlwheelb"]._friendlyName = "Control Wheel Button";
+        map["ctrlwheelb"].height = map["ctrlwheelb"].width;
+        map["ctrlwheelb"].y -= 3;
+
+        map["profswitch"].height += 1;
+        map["lock"].height = map["mute"].height = map["profswitch"].height;
+        map["mute"].y = map["profswitch"].y = map["lock"].y = map["ctrlwheelb"].y;
+        map["volup"].y = map["ctrlwheelb"].y - 2;
+        map["voldn"].y = map["ctrlwheelb"].y + 2;
+        map["profswitch"].x -= 1;
+        map["lock"].x += 1;
+
+        map["ctrlwheel1"] = {nullptr, "Control Wheel 22.5°", "ctrlwheel1", 60+2, 10  , 20, 20, true, false};
+        map["ctrlwheel2"] = {nullptr, "Control Wheel 67.5°", "ctrlwheel2", 60+3, 10+1, 20, 20, true, false};
+        map["ctrlwheel3"] = {nullptr, "Control Wheel 112.5°", "ctrlwheel3", 60+3, 10+2, 20, 20, true, false};
+        map["ctrlwheel4"] = {nullptr, "Control Wheel 157.5°", "ctrlwheel4", 60+2, 10+3, 20, 20, true, false};
+        map["ctrlwheel5"] = {nullptr, "Control Wheel 202.5°", "ctrlwheel5", 60+1, 10+3, 20, 20, true, false};
+        map["ctrlwheel6"] = {nullptr, "Control Wheel 247.5°", "ctrlwheel6", 60  , 10+2, 20, 20, true, false};
+        map["ctrlwheel7"] = {nullptr, "Control Wheel 292.5°", "ctrlwheel7", 60  , 10+1, 20, 20, true, false};
+        map["ctrlwheel8"] = {nullptr, "Control Wheel 337.5°", "ctrlwheel8", 60+1, 10  , 20, 20, true, false};
+
+        map["logoleft"] = {nullptr, "Logo Left", "logoleft", 134, 10, 10, 10, true, false};
+        map["logo"] = {nullptr, "Logo", "logo", 144, 10, 10, 10, true, false};
+        map["logoright"] = {nullptr, "Logo Right", "logoright", 154, 10, 10, 10, true, false};
+
+        map.remove("light");
         break;
     }
     case KeyMap::K70:{
@@ -1180,6 +1259,10 @@ static QHash<QString, Key> getMap(KeyMap::Model model, KeyMap::Layout layout){
         break;
     }
     default:;    // <- stop GCC from complaining
+        case KeyMap::NO_MODEL:
+            break;
+        case KeyMap::_MODEL_MAX:
+            break;
     }
 
     if(KeyMap::isJP(layout))
@@ -1320,43 +1403,56 @@ QString KeyMap::getLayout(KeyMap::Layout layout){
     }
 }
 
-QPair<int, QString> KeyMap::addToList(int i, const QStringList& list){
-    return QPair<int, QString>(i, list.at(i));
+QPair<int, QString> KeyMap::addToList(int i, QStringList* list){
+    return QPair<int, QString>(i, list->at(i));
 }
 
-const QStringList KeyMap::layoutList {
-    "Danish", "English (ISO/European)", "English (ISO/European, Dvorak)", "English (United Kingdom)", "English (United Kingdom, Dvorak)",
-     "English (United States)", "English (United States, Dvorak)", "French", "German", "Italian", "Japanese", "Norwegian", "Polish",
-     "Portuguese (Brazil)", "Spanish (Latin America)", "Spanish (Spain)", "Swedish"
-};
 QList<QPair<int, QString>> KeyMap::layoutNames(const QString& layout){
+    QStringList list;
+    list << "Danish"
+         << "English (ISO/European)"
+         << "English (ISO/European, Dvorak)"
+         << "English (United Kingdom)"
+         << "English (United Kingdom, Dvorak)"
+         << "English (United States)"
+         << "English (United States, Dvorak)"
+         << "French"
+         << "German"
+         << "Italian"
+         << "Japanese"
+         << "Norwegian"
+         << "Polish"
+         << "Portuguese (Brazil)"
+         << "Spanish (Latin America)"
+         << "Spanish (Spain)"
+         << "Swedish";
 
     // Create a list containing the layouts supported by the current device
     QList<QPair<int, QString>> retlist;
     if(layout == "ansi")
-        retlist << KeyMap::addToList(5, layoutList)
-                << KeyMap::addToList(6, layoutList);
+        retlist << KeyMap::addToList(5, &list)
+                << KeyMap::addToList(6, &list);
     else if(layout == "iso")
-        retlist << KeyMap::addToList(0, layoutList)
-                << KeyMap::addToList(1, layoutList)
-                << KeyMap::addToList(2, layoutList)
-                << KeyMap::addToList(3, layoutList)
-                << KeyMap::addToList(4, layoutList)
-                << KeyMap::addToList(7, layoutList)
-                << KeyMap::addToList(8, layoutList)
-                << KeyMap::addToList(9, layoutList)
-                << KeyMap::addToList(11, layoutList)
-                << KeyMap::addToList(12, layoutList)
-                << KeyMap::addToList(14, layoutList)
-                << KeyMap::addToList(15, layoutList)
-                << KeyMap::addToList(16, layoutList);
+        retlist << KeyMap::addToList(0, &list)
+                << KeyMap::addToList(1, &list)
+                << KeyMap::addToList(2, &list)
+                << KeyMap::addToList(3, &list)
+                << KeyMap::addToList(4, &list)
+                << KeyMap::addToList(7, &list)
+                << KeyMap::addToList(8, &list)
+                << KeyMap::addToList(9, &list)
+                << KeyMap::addToList(11, &list)
+                << KeyMap::addToList(12, &list)
+                << KeyMap::addToList(14, &list)
+                << KeyMap::addToList(15, &list)
+                << KeyMap::addToList(16, &list);
     else if(layout == "abnt")
-        retlist << KeyMap::addToList(13, layoutList);
+        retlist << KeyMap::addToList(13, &list);
     else if(layout == "jis")
-        retlist << KeyMap::addToList(10, layoutList);
+        retlist << KeyMap::addToList(10, &list);
     else
-        for(int i = 0; i < layoutList.count(); i++)
-            retlist << KeyMap::addToList(i, layoutList);
+        for(int i = 0; i < list.count(); i++)
+            retlist << KeyMap::addToList(i, &list);
     return retlist;
 }
 
@@ -1428,6 +1524,10 @@ KeyMap::Model KeyMap::getModel(const QString& name){
         return GLAIVEPRO;
     if(lower == "k55pro")
         return K55PRO;
+    if(lower == "k100_optical")
+        return K100_OPTICAL;
+    if(lower == "k100_mechanical")
+        return K100_MECHANICAL;
     return NO_MODEL;
 }
 
@@ -1499,6 +1599,10 @@ QString KeyMap::getModel(KeyMap::Model model){
         return "k95l";
     case GLAIVEPRO:
         return "glaivepro";
+    case K100_MECHANICAL:
+        return "k100_mechanical";
+    case K100_OPTICAL:
+        return "k100_optical";
     default:
         return "";
     }
@@ -1535,6 +1639,9 @@ int KeyMap::modelWidth(Model model){
     case K55:
     case K57_WL:
         return K95P_WIDTH;
+    case K100_MECHANICAL:
+    case K100_OPTICAL:
+        return K100_WIDTH;
     case STRAFE:
     case STRAFE_MK2:
         return KSTRAFE_WIDTH;
@@ -1582,6 +1689,9 @@ int KeyMap::modelHeight(Model model){
         return K95_HEIGHT;
     case K95P:
         return K95P_HEIGHT;
+    case K100_MECHANICAL:
+    case K100_OPTICAL:
+        return K100_HEIGHT;
     case K60:
         return K60_HEIGHT;
     case M55:
@@ -1648,17 +1758,17 @@ QString KeyMap::friendlyName(const QString& key, Layout layout){
     // it would probably be best to remove the friendly names from the maps and have a completely separate name->friendlyName store
     KeyMap map(K95, layout);
     if(map.contains(key))
-        return map.key(key).friendlyName();
+        return map[key].friendlyName();
 
     // The only key missing from it should be Fn, which is found on STRAFE
     map = KeyMap(STRAFE, layout);
     if(map.contains(key))
-        return map.key(key).friendlyName();
+        return map[key].friendlyName();
 
     // Light Program for the legacy K95
     map = KeyMap(K95L, layout);
     if(map.contains(key))
-        return map.key(key).friendlyName();
+        return map[key].friendlyName();
 
     // Additionally, there are a handful of keys not present on any physical keyboard, but we need names for them
     if(key == "f13" || key == "f14" || key == "f15" || key == "f16" || key == "f17" || key == "f18" || key == "f19" || key == "f20"
@@ -1674,22 +1784,22 @@ QString KeyMap::friendlyName(const QString& key, Layout layout){
     // All other names are found on mice
     map = KeyMap(SCIMITAR, layout);
     if(map.contains(key))
-        return map.key(key).friendlyName();
+        return map[key].friendlyName();
     map = KeyMap(M65, layout);
     if(map.contains(key))
-        return map.key(key).friendlyName();
+        return map[key].friendlyName();
     map = KeyMap(HARPOON, layout);
     if(map.contains(key))
-        return map.key(key).friendlyName();
+        return map[key].friendlyName();
     map = KeyMap(IRONCLAW, layout);
     if(map.contains(key))
-        return map.key(key).friendlyName();
+        return map[key].friendlyName();
     map = KeyMap(NIGHTSWORD, layout);
     if(map.contains(key))
-        return map.key(key).friendlyName();
+        return map[key].friendlyName();
     map = KeyMap(IRONCLAW_W, layout);
     if(map.contains(key))
-        return map.key(key).friendlyName();
+        return map[key].friendlyName();
 
     // Not found at all
     return "";

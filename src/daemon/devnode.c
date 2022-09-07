@@ -10,17 +10,16 @@
 // OSX doesn't like putting FIFOs in /dev for some reason
 // Don't make these pointers, as doing so will result in sizeof() not producing the correct result.
 #ifndef OS_MAC
-#define DEVPATH "/dev/input/ckb"
+const char devpath[] = "/dev/input/ckb";
 #else
-#define DEVPATH "/var/run/ckb"
+const char devpath[] = "/var/run/ckb";
 #endif
 
-const char devpath[] = DEVPATH;
 #define DEVPATH_LEN (sizeof(devpath) - 1)
 
-const char pidpath[] = DEVPATH "0/pid";
-
-pid_t is_pid_running(void){
+int is_pid_running(void){
+    char pidpath[DEVPATH_LEN + 6];
+    snprintf(pidpath, sizeof(pidpath), "%s0/pid", devpath);
     FILE* pidfile = fopen(pidpath, "r");
     if(pidfile){
         pid_t pid;
@@ -29,8 +28,11 @@ pid_t is_pid_running(void){
         fclose(pidfile);
         if(pid > 0){
             // kill -s 0 checks if the PID is active but doesn't send a signal
-            if(!kill(pid, 0))
-                return pid;
+            if(!kill(pid, 0)){
+                ckb_fatal_nofile("ckb-next-daemon is already running (PID %d). Try `killall ckb-next-daemon`.", pid);
+                ckb_fatal_nofile("(If you're certain the process is dead, delete %s and try again)", pidpath);
+                return 1;
+            }
         }
     }
     return 0;

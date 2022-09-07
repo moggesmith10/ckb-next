@@ -85,6 +85,8 @@ public:
         K57_WL,
         K63_WL,
         K55PRO,
+	    K100_MECHANICAL,
+	    K100_OPTICAL,
         _MODEL_MAX
     };
     // Key layouts (ordered alphabetically by name)
@@ -166,8 +168,8 @@ public:
     inline uint height() const  { return keyHeight; }
 
     // Keys by name
-    inline Key  key(const QString& name) const          { return _keys.value(name, {nullptr,nullptr,nullptr,0,0,0,0,0,0}); }
-    inline Key& operator[](const QString& name)         { return _keys[name]; }
+    inline Key  key(const QString& name) const          { Key empty = {nullptr,nullptr,nullptr,0,0,0,0,0,0}; return _keys.value(name, empty); }
+    inline Key  operator[](const QString& name) const   { return key(name); }
     inline bool contains(const QString& name) const     { return _keys.contains(name); }
     // List all key names/values
     inline const QHash<QString, Key>&   map() const                         { return _keys; }
@@ -184,8 +186,6 @@ public:
     // Friendly key name on any device
     static QString friendlyName(const QString& key, Layout layout = US);
 
-    static const QStringList layoutList;
-
 private:
     static int modelWidth(Model model);
     static int modelHeight(Model model);
@@ -195,7 +195,7 @@ private:
     Model keyModel :8;
     Layout keyLayout :8;
 
-    static QPair<int, QString> addToList(int i, const QStringList& list);
+    static QPair<int, QString> addToList(int i, QStringList *list);
 };
 
 #endif // KEYMAP_H
